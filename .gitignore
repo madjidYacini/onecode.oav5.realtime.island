@@ -1,0 +1,20 @@
+
+### Node ###
+
+# Logs
+*.log
+yarn-debug.log*
+yarn-error.log*
+
+# Lock
+yarn.lock
+package-lock.json
+
+# Dependency directories
+node_modules/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env

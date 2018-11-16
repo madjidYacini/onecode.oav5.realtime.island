@@ -1,0 +1,40 @@
+{
+  "env": {
+    // enables ES6 syntax automatically
+    "es6": true,
+    // node.js global variables and node.js scoping
+    "node": true
+  },
+  // set of enabled rules from third party configurations
+  "extends": ["eslint:recommended", "airbnb-base"],
+  // replace esprima-compatible parser
+  "parser": "babel-eslint",
+  // javascript language options
+  "parserOptions": {
+    "ecmaVersion": 6,
+    // code in ECMAScript modules style
+    "sourceType": "module"
+  },
+  // specifying global allowing access
+  "globals": {
+    "process": true
+  },
+  "rules": {
+    "quotes": ["warn", "single"],
+    "semi": ["warn", "never"],
+    "indent": [
+      "warn",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "camelcase": "off",
+
+    "no-unused-vars": "warn",
+    "no-param-reassign": "warn",
+
+    "no-console": "warn"
+  }
+  // More information here: https://eslint.org/docs/user-guide/configuring
+}

@@ -1,6 +1,7 @@
 import express from "express";
 import socketIo from "socket.io";
 import path from "path";
+import randomWords from "random-words";
 import { createServer } from "http";
 import { argv, mlog } from "./libs/utils";
 
@@ -23,7 +24,7 @@ const start = async () => {
         if (magicNumber.nbPlayers) {
           magicNumber.nbPlayers--;
         }
-        magicNumber.emit("messageMagic", "Waiting for another player");
+        magicNumber.emit("magicNumberMessage", "Waiting for another player");
         if (magicNumber.nbPlayers != 2) {
           magicNumber.started = false;
         }
@@ -60,18 +61,18 @@ const start = async () => {
         mlog(`${socket.nickname} is ready`, "yellow");
       });
 
-      socket.on("number", nb => {
+      socket.on("beginGame", number => {
         socket.round = socket.round || 0;
         let answer = Math.floor(Math.random() * 1338);
         magicNumber.answer = magicNumber.answer || answer;
-        if (nb > magicNumber.answer) {
+        if (number > magicNumber.answer) {
           console.log("plus petit");
           socket.emit("magicNumberMessage", "smaller");
-        } else if (nb < magicNumber.answer) {
+        } else if (number < magicNumber.answer) {
           console.log("plus grand");
 
           socket.emit("magicNumberMessage", "greater");
-        } else if (nb == magicNumber.answer) {
+        } else if (number == magicNumber.answer) {
           socket.round++;
           magicNumber.answer = Math.floor(Math.random() * 1338);
           console.log();
@@ -95,6 +96,90 @@ const start = async () => {
           socket.emit("magicNumberMessage", winner);
           socket.broadcast.emit("magicNumberMessage", loser);
           magicNumber.answer = null;
+        }
+      });
+    });
+
+    let fastkey = io.of("/fastkey");
+    fastkey.on("connection", function(socket) {
+      fastkey.emit("welcome", "Welcome in the fastKey game");
+
+      socket.on("join", nickname => {
+        socket.nickname = nickname;
+        mlog(`${nickname} has joined the fast Game`, "cyan");
+      });
+
+      fastkey.on("disconnect", nickname => {
+        fastkey.nbPlayers = fastkey.nbPlayers - 1;
+        fastkey.nbPlayers = fastkey.nbPlayers == 0 ? null : fastkey.nbPlayers;
+        fastkey.emit("fastKeyMessage", null);
+      });
+
+      socket.on("start", () => {
+        fastkey.nbPlayers = fastkey.nbPlayers || 0;
+        fastkey.nbPlayers++;
+
+        if (fastkey.started) {
+          socket.emit(
+            "fastKeyMessage",
+            "The game is already started wait the end"
+          );
+        } else if (fastkey.nbPlayers == 2) {
+          fastkey.started = true;
+          socket.emit("start", true);
+          socket.broadcast.emit("start", true);
+          fastkey.answer = randomWords();
+          socket.emit(
+            "fastKeyMessage",
+            `The game is to type the word ${fastkey.answer} quickly`
+          );
+          socket.broadcast.emit(
+            "messageMagic",
+            `The game is to type the word ${fastkey.answer} quickly`
+          );
+          console.log("all players are connected");
+        } else {
+          socket.emit("fastKeyMessage", "waiting other player");
+        }
+        console.log(fastkey.nbPlayers);
+        console.log(`${socket.nickname} is ready`);
+      });
+
+      socket.on("beginGame", word => {
+        socket.round = socket.round || 0;
+        console.log(fastkey.answer);
+        console.log(word);
+
+        if (word.localeCompare(fastkey.answer) !== 0) {
+          socket.emit(
+            "fastKeyMessage",
+            "you've miss typed the word, try again"
+          );
+          console.log("wrong");
+        } else if (word.localeCompare(fastkey.answer) === 0) {
+          socket.round++;
+          console.log(socket.round);
+          fastkey.answer = randomWords();
+          let winner;
+          let loser;
+          if (socket.round == 2) {
+            winner = "You win";
+            loser = "You lose";
+            console.log("you winn bitch");
+          } else {
+            winner = `You win this round, ${7 -
+              socket.round} more rounds to win the game. Here the new word: ${
+              fastkey.answer
+            }`;
+            loser = `You lose this round  Here the new word : ${
+              fastkey.answer
+            }`;
+            console.log(loser);
+            console.log(winner);
+          }
+
+          socket.emit("fastKeyMessage", winner);
+          socket.broadcast.emit("fastKeyMessage", loser);
         }
       });
     });

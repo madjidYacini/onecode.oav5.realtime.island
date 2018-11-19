@@ -129,6 +129,8 @@ const start = async () => {
           socket.emit("start", true);
           socket.broadcast.emit("start", true);
           fastkey.answer = randomWords();
+          console.log("ZERTYUI");
+          console.log(fastkey.answer);
           socket.emit(
             "fastKeyMessage",
             `The game is to type the word ${fastkey.answer} quickly`
@@ -183,6 +185,58 @@ const start = async () => {
         }
       });
     });
+
+    // QuicKey
+    // wait TWO or more players for start the game
+    let players = []
+    let pointForHim = []
+    let nbPLayer = 0
+    let quicKey = io.of("/QuicKey");
+    quicKey.on("connection", function(socket){
+
+
+  socket.on("ok", (nickname) => {
+    // console.log(nickname);
+    quicKey.nickname = nickname
+    quicKey.countKey =  0
+    // for (const client of Object.values(quicKey.clients())) {
+    //   console.log(client);
+    // }
+
+    nbPLayer = nbPLayer + 1
+    if (nbPLayer>= 2) {
+      socket.emit("start", ("k"))
+      setTimeout(() =>{ socket.emit("endChrono"), countPoint() }, 3000)
+    }
+    else {
+      console.log(`${quicKey.nickname} wait a other player`);
+    }
+  });
+
+  // add counter when Keypress
+  socket.on("addKey", (key) => {
+    quicKey.countKey++
+  });
+
+  // function to add point to Most playerCounter
+   function countPoint(){
+     for (const client of Object.values(io.sockets.clients().connected)) {
+       console.log(client.nickname);
+       let user = {}
+       user.name = client.nickname
+       user.countKey = client.countKey || 0
+       user.point = client.point || 0
+       players.push(user)
+     }
+     let valueMax  = Math.max(...players.map(o => o.countKey), 0)
+     let indexOfArray = players.findIndex(i => i.countKey === valueMax)
+     players[indexOfArray].point ++
+     console.log(`winnerStep is : ${players[indexOfArray].name}`);
+     socket.emit("winnerStep", players[indexOfArray] )
+  }
+})
+
+        // FINQuicKey
 
     // ... and finally server listening not the app
     server.listen(port, err => {

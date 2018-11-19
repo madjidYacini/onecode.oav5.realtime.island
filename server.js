@@ -136,7 +136,7 @@ const start = async () => {
             `The game is to type the word ${fastkey.answer} quickly`
           );
           socket.broadcast.emit(
-            "messageMagic",
+            "fastKeyMessage",
             `The game is to type the word ${fastkey.answer} quickly`
           );
           console.log("all players are connected");

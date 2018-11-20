@@ -64,6 +64,7 @@ const start = async () => {
       socket.on("beginGame", number => {
         socket.round = socket.round || 0;
         let answer = Math.floor(Math.random() * 1338);
+        console.log(answer);
         magicNumber.answer = magicNumber.answer || answer;
         if (number > magicNumber.answer) {
           console.log("plus petit");
@@ -75,7 +76,7 @@ const start = async () => {
         } else if (number == magicNumber.answer) {
           socket.round++;
           magicNumber.answer = Math.floor(Math.random() * 1338);
-          console.log();
+          console.log(magicNumber.answer);
 
           console.log("le round est gagné");
           console.log(socket.round);
@@ -83,8 +84,8 @@ const start = async () => {
           let winner;
           let loser;
           if (socket.round == 3) {
-            winner = "You win";
-            loser = "You lose";
+            winner = "The Game is over : You win.";
+            loser =  "The Game is over : You lose.";
             console.log("la partie est terminé");
           } else {
             winner = `You win this round, ${3 -
